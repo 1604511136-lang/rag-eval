@@ -1,5 +1,7 @@
 # RAG 检索问答系统 + 评测基准
 
+[![eval](https://github.com/1604511136-lang/rag-eval/actions/workflows/eval.yml/badge.svg)](https://github.com/1604511136-lang/rag-eval/actions/workflows/eval.yml)
+
 一个基于 **FastAPI 官方文档（中/英两套语料）** 的检索增强生成（RAG）问答系统。重点不在「能回答问题」，而在于一套**可量化、可复用**的评测基准：对比不同切分大小与检索策略下的 `Recall@k / nDCG@k / MRR`，用 LLM-as-judge 评估答案忠实度与正确性，并把这套评测做成了网页看板。
 
 > 一句话能写进简历：*「构建 FastAPI 文档检索问答系统，搭建含 Recall@k/MRR/nDCG 与 LLM-judge 的可复用评测基准，在中文/英文两套语料上量化对比 hybrid+rerank 相比 BM25 基线 MRR 提升 15.8%、recall@1 提升 16.2%」。*
