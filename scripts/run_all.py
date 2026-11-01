@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import numpy as np
 
-from src import config, ingest, llm, report
+from src import config, ingest, llm, report, vector_store
 
 
 def embed_and_save(chunks: list[dict], size: int) -> None:
@@ -25,7 +25,9 @@ def embed_and_save(chunks: list[dict], size: int) -> None:
     print(f"[embed] 计算 {len(texts)} 个 chunk 的向量 (chunk_size={size}) ...")
     vecs = llm.embed(texts)
     np.save(config.CHUNK_DIR / f"embeddings_{size}.npy", np.asarray(vecs, dtype=np.float32))
-    print(f"[embed] 已保存 embeddings_{size}.npy")
+    vector_store.upsert(size, chunks, vecs)
+    print(f"[embed] 已保存 embeddings_{size}.npy 并写入 Chroma 集合 "
+          f"{vector_store.collection_name(size)}")
 
 
 def load_qa(path: Path) -> list[dict]:

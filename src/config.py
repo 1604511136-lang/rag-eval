@@ -85,3 +85,8 @@ def use_corpus(name: str) -> None:
 def output_dir(name: str | None = None) -> Path:
     """某语料的报告产物目录（data/<name>/output）。"""
     return _dirs_for(name or CORPUS_NAME)[3]
+
+
+def chroma_dir() -> Path:
+    """向量库（Chroma）持久化目录，按语料隔离（data/<corpus>/chunks/chroma）。"""
+    return CHUNK_DIR / "chroma"

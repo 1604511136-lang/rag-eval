@@ -9,7 +9,7 @@
 ## ✨ 特性
 
 ### 检索与生成
-- **检索**：BM25（词法基线）/ Dense（向量余弦相似度）/ Hybrid（RRF 融合）三种策略
+- **检索**：BM25（词法基线）/ Dense（向量，Chroma 向量库 + 余弦相似度）/ Hybrid（RRF 融合）三种策略
 - **重排序**：cross-encoder（bge-reranker-v2-m3）对 hybrid 召回的 top-N 候选精排，提升 MRR / recall@1
 - **查询改写**：检索前用 LLM 把口语化问题改写成关键词密集的检索查询（HyDE 的低成本替代），重排与生成仍用原始问题
 - **多轮对话**：按 session 保留最近若干轮上下文，结合历史把「它呢？」这类指代追问解析成独立查询再检索，生成时附带对话历史
@@ -103,7 +103,7 @@ pytest
 
 ## 🧠 原理
 
-1. **检索**：query 与 chunk 分别用 embedding 模型向量化，dense 检索取余弦相似度 top-k；BM25 作为词法基线；hybrid 用 Reciprocal Rank Fusion（RRF）融合两者排序。
+1. **检索**：query 与 chunk 分别用 embedding 模型向量化，chunk 向量持久化到 Chroma，dense 检索用余弦近邻取 top-k；BM25 作为词法基线；hybrid 用 Reciprocal Rank Fusion（RRF）融合两者排序。
 2. **重排序**：hybrid 先召回 top-20 候选，再用 cross-encoder（对 query 与文档联合编码）逐个计算相关度精排取 top-10，比双塔 embedding 的余弦相似度排序更准。
 3. **评测**：`gold_chunks` 标注每道题对应的标准文档片段，检索结果与之比对计算 Recall@k / nDCG@k / MRR。
 4. **答案质量**：检索到的片段 + 问题交给 LLM 生成带引用的答案，再用 LLM 对忠实度、正确性打分。
@@ -118,6 +118,7 @@ rag-eval/
 │   ├── llm.py            # OpenAI-compatible 客户端封装
 │   ├── ingest.py         # 语料下载 / markdown 切分
 │   ├── retrieve.py       # BM25 / dense / hybrid 检索
+│   ├── vector_store.py   # Chroma 向量库封装（持久化 + 余弦近邻检索）
 │   ├── rerank.py         # cross-encoder 重排序
 │   ├── rewrite.py        # 检索查询改写（HyDE-lite）
 │   ├── generate.py       # RAG 生成（带引用）
@@ -138,7 +139,7 @@ rag-eval/
 
 | 层 | 技术 |
 | --- | --- |
-| 检索 | BM25（rank-bm25）+ 向量余弦相似度（numpy）+ RRF 融合 |
+| 检索 | BM25（rank-bm25）+ Dense（Chroma 向量库，HNSW 余弦近邻）+ RRF 融合 |
 | 重排序 | cross-encoder（bge-reranker-v2-m3，走 `/rerank` 接口） |
 | Embedding / LLM | OpenAI-compatible API（BGE-M3 / DeepSeek / Qwen 等） |
 | 评测 | Recall@k / nDCG@k / MRR + LLM-as-judge |

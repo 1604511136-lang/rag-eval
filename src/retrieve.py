@@ -34,11 +34,17 @@ def _normalize(m: np.ndarray) -> np.ndarray:
 
 
 class Retriever:
-    """基于一组 chunk 的检索器。dense 检索依赖 llm.embed 计算 query 向量。"""
+    """基于一组 chunk 的检索器。dense 检索优先走 Chroma 向量库（传入
+    ``collection_name``），否则回退到 numpy 余弦相似度（传入 ``embeddings``）。"""
 
-    def __init__(self, chunks: list[dict], embeddings: list[list[float]]):
+    def __init__(self, chunks: list[dict], embeddings: list[list[float]] | None = None,
+                 collection_name: str | None = None):
         self.chunks = list(chunks)
-        self.embeddings = _normalize(np.asarray(embeddings, dtype=np.float32))
+        self.collection_name = collection_name
+        self.embeddings = (
+            _normalize(np.asarray(embeddings, dtype=np.float32))
+            if embeddings is not None else None
+        )
         self.bm25 = BM25Okapi([tokenize(c["text"]) for c in self.chunks])
         self.id_to_idx = {c["chunk_id"]: i for i, c in enumerate(self.chunks)}
 
@@ -48,8 +54,14 @@ class Retriever:
         return [self.chunks[i]["chunk_id"] for i in idxs]
 
     def _rank_dense(self, query: str, top_k: int) -> list[str]:
-        q = _normalize(np.asarray([llm.embed([query])[0]], dtype=np.float32))
-        sims = (self.embeddings @ q.T).ravel()
+        q = llm.embed([query])[0]
+        if self.collection_name is not None:
+            from src import vector_store
+            return vector_store.search(self.collection_name, q, top_k)
+        if self.embeddings is None:
+            raise RuntimeError("dense 检索需要 Chroma 集合或 embeddings 之一")
+        qn = _normalize(np.asarray([q], dtype=np.float32))
+        sims = (self.embeddings @ qn.T).ravel()
         idxs = np.argsort(sims)[::-1][:top_k]
         return [self.chunks[i]["chunk_id"] for i in idxs]
 

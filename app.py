@@ -54,7 +54,7 @@ def _get_retriever() -> tuple[Retriever, dict]:
     global _retriever, _by_id
     if _retriever is None:
         chunks = ingest.load_chunks(CHUNK_SIZE)
-        _retriever = Retriever(chunks, report.load_embeddings(CHUNK_SIZE))
+        _retriever = report.make_retriever(CHUNK_SIZE)
         _by_id = {c["chunk_id"]: c for c in chunks}
     return _retriever, _by_id
 

@@ -20,7 +20,7 @@ plt.rcParams["font.sans-serif"] = [
 ]
 plt.rcParams["axes.unicode_minus"] = False
 
-from src import config, generate, ingest
+from src import config, generate, ingest, vector_store
 from src.eval_answer import judge_correctness, judge_faithfulness
 from src.eval_retrieval import evaluate_retrieval
 from src.retrieve import Retriever
@@ -35,6 +35,14 @@ def load_embeddings(chunk_size: int) -> np.ndarray:
     return np.load(path)
 
 
+def make_retriever(chunk_size: int) -> Retriever:
+    """构建检索器：优先用 Chroma 向量库，集合缺失时回退 numpy 余弦相似度。"""
+    chunks = ingest.load_chunks(chunk_size)
+    if vector_store.exists(chunk_size):
+        return Retriever(chunks, collection_name=vector_store.collection_name(chunk_size))
+    return Retriever(chunks, load_embeddings(chunk_size))
+
+
 def _chunk_key(c: dict) -> str:
     """section 级 relevance key，与 chunk 大小无关，用于跨切分公平对比。"""
     return f"{c['source']}||{c['section']}"
@@ -46,7 +54,7 @@ def run_retrieval_grid(qa_items: list[dict]) -> dict:
     for size in config.CHUNK_SIZES:
         chunks = ingest.load_chunks(size)
         key_by_id = {c["chunk_id"]: _chunk_key(c) for c in chunks}
-        retriever = Retriever(chunks, load_embeddings(size))
+        retriever = make_retriever(size)
         for strategy in STRATEGIES:
             def search(q, r=retriever, kb=key_by_id, s=strategy):
                 ranked = r.search(q, s)
@@ -80,7 +88,7 @@ def run_rerank_grid(qa_items: list[dict], strategy: str = "hybrid") -> dict:
         chunks = ingest.load_chunks(size)
         key_by_id = {c["chunk_id"]: _chunk_key(c) for c in chunks}
         text_by_id = {c["chunk_id"]: c["text"] for c in chunks}
-        retriever = Retriever(chunks, load_embeddings(size))
+        retriever = make_retriever(size)
 
         def search(q, r=retriever, kb=key_by_id, tb=text_by_id):
             ranked = _search_ranked(
@@ -104,7 +112,7 @@ def run_answer_eval(qa_items: list[dict], size: int, strategy: str,
                     top_k: int = 5, limit: int | None = None) -> dict:
     """对指定配置跑答案质量评测，返回 faithfulness/correctness 均值。"""
     chunks = ingest.load_chunks(size)
-    retriever = Retriever(chunks, load_embeddings(size))
+    retriever = make_retriever(size)
     text_by_id = {c["chunk_id"]: c["text"] for c in chunks}
     items = qa_items[:limit] if limit else qa_items
 
