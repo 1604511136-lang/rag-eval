@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>FastAPI 文档问答 · RAG</title>
+
+  <!-- PWA / 添加到主屏幕 -->
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" href="/icon-192.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="RAG 问答" />
+
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <span class="eyebrow">RAG · 检索增强生成</span>
+      <h1>FastAPI 文档问答</h1>
+      <p class="subtitle">基于 RAG 的检索问答 · 答案带引用来源</p>
+    </header>
+
+    <nav class="nav" aria-label="主导航">
+      <a class="nav-link active" href="/" aria-current="page">问答</a>
+      <a class="nav-link" href="/eval.html">评测</a>
+    </nav>
+
+    <section class="features" aria-label="功能列表">
+      <span class="feature">🔍 hybrid 检索（BM25 + 向量 + RRF）</span>
+      <span class="feature">🎯 cross-encoder 重排序</span>
+      <span class="feature">📌 答案带来源引用</span>
+      <span class="feature">📊 内置评测基准（Recall@k / MRR）</span>
+    </section>
+
+    <section class="quick" aria-label="快捷提问">
+      <p class="quick-label">快捷提问</p>
+      <div class="chips" id="chips">
+        <button class="chip" type="button">怎么声明路径参数？</button>
+        <button class="chip" type="button">依赖注入 Depends 是什么？</button>
+        <button class="chip" type="button">如何返回自定义状态码？</button>
+        <button class="chip" type="button">怎么处理跨域 CORS？</button>
+        <button class="chip" type="button">如何校验请求体字段？</button>
+      </div>
+    </section>
+
+    <section class="result" id="result" hidden></section>
+
+    <div class="mode" id="mode" role="tablist" aria-label="问答或检索">
+      <button class="mode-btn active" data-mode="ask" type="button" role="tab">问答</button>
+      <button class="mode-btn" data-mode="search" type="button" role="tab">语义检索</button>
+    </div>
+
+    <form class="ask" id="form" autocomplete="off">
+      <input
+        id="input"
+        type="text"
+        placeholder="输入你的问题…"
+        aria-label="问题输入框"
+      />
+      <button id="submit" type="submit">提问</button>
+    </form>
+    <p class="hint"><kbd>Enter</kbd> 发送 · 点击上方快捷提问可直接提交</p>
+
+    <section class="history" id="history" hidden>
+      <div class="history-head">
+        <h2>历史记录</h2>
+        <button class="clear-btn" id="clearHistory" type="button">清空</button>
+      </div>
+      <ul class="history-list" id="historyList"></ul>
+    </section>
+
+    <footer class="footer">
+      语料：FastAPI 官方中文文档 · hybrid 检索 + cross-encoder 重排序
+    </footer>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

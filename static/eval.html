@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>评测结果 · RAG</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" href="/icon-192.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="RAG 评测" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <span class="eyebrow">Eval · 检索评测</span>
+      <h1>评测结果</h1>
+      <p class="subtitle">量化对比 chunk 大小 × 检索策略，衡量检索与重排序质量</p>
+    </header>
+
+    <nav class="nav" aria-label="主导航">
+      <a class="nav-link" href="/">问答</a>
+      <a class="nav-link active" href="/eval.html" aria-current="page">评测</a>
+    </nav>
+
+    <section class="corpus-tabs" id="corpusTabs" aria-label="选择语料"></section>
+
+    <section class="eval-actions">
+      <button id="runBtn" class="btn-secondary" type="button">运行评测</button>
+      <span class="run-status" id="runStatus" hidden></span>
+    </section>
+
+    <section id="report" class="report"></section>
+  </main>
+
+  <script src="/eval.js"></script>
+</body>
+</html>
